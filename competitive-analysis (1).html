@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конкурентный анализ — Платформы корпоративных коммуникаций</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #1a1d25;
+    --border: #ffffff0f;
+    --accent: #5b8af5;
+    --accent2: #f5855b;
+    --accent3: #5bf5b0;
+    --accent4: #f5d05b;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --strong-weak-border: #2a2d35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Onest', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, #5b8af512 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 80%, #f5855b0a 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* HEADER */
+  header {
+    padding: 5rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-label {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .header-label::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .header-sub {
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 300;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+    padding-top: 2rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* RADAR / OVERVIEW SECTION */
+  .section {
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  /* SCORECARD GRID */
+  .scorecard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .scorecard {
+    background: var(--surface);
+    padding: 1.75rem;
+    position: relative;
+    cursor: default;
+    transition: background 0.2s;
+  }
+
+  .scorecard:hover {
+    background: var(--surface2);
+  }
+
+  .scorecard-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .company-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .type-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+  }
+
+  .type-direct { background: #5b8af520; color: var(--accent); border: 1px solid #5b8af540; }
+  .type-indirect { background: #f5855b20; color: var(--accent2); border: 1px solid #f5855b40; }
+  .type-eco { background: #5bf5b020; color: var(--accent3); border: 1px solid #5bf5b040; }
+
+  .scorecard-offer {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 1.25rem;
+  }
+
+  .scorecard-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .bar-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    width: 100px;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 5px;
+    background: #ffffff0a;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s ease;
+  }
+
+  .bar-strong { background: var(--accent3); }
+  .bar-mid { background: var(--accent); }
+  .bar-low { background: var(--accent4); }
+
+  .sw-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .sw-box {
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.73rem;
+    line-height: 1.4;
+  }
+
+  .sw-strong {
+    background: #5bf5b010;
+    border: 1px solid #5bf5b025;
+    color: var(--accent3);
+  }
+
+  .sw-weak {
+    background: #f5855b10;
+    border: 1px solid #f5855b25;
+    color: var(--accent2);
+  }
+
+  .sw-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+    opacity: 0.7;
+  }
+
+  /* DETAILED TABLE */
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .detail-table th {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-table td {
+    padding: 1.1rem 1rem;
+    font-size: 0.83rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+
+  .detail-table tr:last-child td { border-bottom: none; }
+
+  .detail-table tr:hover td {
+    background: var(--surface2);
+  }
+
+  .td-company {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .td-muted { color: var(--muted); }
+
+  .chip {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    margin: 0.1rem;
+    font-weight: 500;
+  }
+
+  .chip-blue { background: #5b8af520; color: var(--accent); border: 1px solid #5b8af540; }
+  .chip-green { background: #5bf5b020; color: var(--accent3); border: 1px solid #5bf5b040; }
+  .chip-orange { background: #f5855b20; color: var(--accent2); border: 1px solid #f5855b40; }
+  .chip-yellow { background: #f5d05b20; color: var(--accent4); border: 1px solid #f5d05b40; }
+
+  /* POSITIONING MAP */
+  .map-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .map-wrap::before, .map-wrap::after {
+    content: '';
+    position: absolute;
+  }
+
+  .map-axis-h {
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .map-axis-v {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .map-label-axis {
+    position: absolute;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .map-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    cursor: default;
+  }
+
+  .map-node-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    margin: 0 auto 0.3rem;
+    position: relative;
+  }
+
+  .map-node-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    opacity: 0.2;
+  }
+
+  .map-node-name {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* NOTE BOX */
+  .note-box {
+    border-left: 2px solid var(--accent4);
+    background: #f5d05b08;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 10px 10px 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+  }
+
+  .note-box strong { color: var(--accent4); }
+
+  /* INSIGHTS */
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .insight-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .insight-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .insight-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .insight-text {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 3rem 0;
+    color: var(--muted);
+    font-size: 0.78rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 1rem;
+  }
+
+  /* ANIMATE ON LOAD */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .scorecard, .insight-card {
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .scorecard:nth-child(1) { animation-delay: 0.05s; }
+  .scorecard:nth-child(2) { animation-delay: 0.1s; }
+  .scorecard:nth-child(3) { animation-delay: 0.15s; }
+  .scorecard:nth-child(4) { animation-delay: 0.2s; }
+  .scorecard:nth-child(5) { animation-delay: 0.25s; }
+  .scorecard:nth-child(6) { animation-delay: 0.3s; }
+  .scorecard:nth-child(7) { animation-delay: 0.35s; }
+  .scorecard:nth-child(8) { animation-delay: 0.4s; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.25rem;
+    width: fit-content;
+  }
+
+  .tab {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--muted);
+    border: none;
+    background: transparent;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* SCROLL */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-label">Конкурентный анализ · 2025</div>
+    <h1>Рынок корпоративных<br><span>коммуникаций</span></h1>
+    <p class="header-sub">Сравнение 8 платформ по типу, позиционированию, сильным сторонам и слабым местам. Российский рынок ВКС и командных инструментов.</p>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Прямой конкурент</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Косвенный / экосистема</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div>Сильные стороны</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent4)"></div>Слабые места</div>
+    </div>
+  </header>
+
+  <!-- SCORECARDS -->
+  <div class="section">
+    <div class="section-title">Карточки конкурентов</div>
+    <div class="scorecard-grid">
+
+      <!-- МТС Линк -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">МТС Линк</div>
+          <div class="type-badge type-direct">Прямой</div>
+        </div>
+        <div class="scorecard-offer">Комплексное решение для онлайн-встреч, вебинаров, чатов, досок, курсов. Инструменты ИИ, масштабируемость до тысяч участников. SaaS + on-premise.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">Масштаб</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:90%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">ИИ-функции</div>
+            <div class="bar-track"><div class="bar-fill bar-mid" style="width:75%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Экосистема</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:45%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Масштаб, бренд МТС, B2G/B2B доверие, техподдержка</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Мало про экосистему командной работы — акцент только на встречи</div>
+        </div>
+      </div>
+
+      <!-- TrueConf -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">TrueConf</div>
+          <div class="type-badge type-direct">Прямой</div>
+        </div>
+        <div class="scorecard-offer">Secure корпоративная ВКС + мессенджер. UltraHD видео, AI-поддержка. Собственный сервер, локальное хранение данных. Крупный бизнес, госструктуры, образование.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">Безопасность</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:95%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Качество видео</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:88%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">UX/бизнес-язык</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:35%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Глубокая ИТ-экспертиза, безопасность, on-premise</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Перегружено техподробностями, мало «бизнес-результата»</div>
+        </div>
+      </div>
+
+      <!-- Яндекс 360 -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">Яндекс 360</div>
+          <div class="type-badge type-indirect">Косвенный</div>
+        </div>
+        <div class="scorecard-offer">Единая облачная платформа: почта, видеоконференции, задачи, файлы — виртуальный офис. Телемост: встречи без регистрации. On-premise доступен.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">Простота</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:92%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Бренд</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:90%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Enterprise-безоп.</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:30%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Простота, знакомый интерфейс, бренд Яндекса</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Не позиционируется как enterprise-решение по безопасности</div>
+        </div>
+      </div>
+
+      <!-- VK Teams -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">VK Teams</div>
+          <div class="type-badge type-direct">Прямой</div>
+        </div>
+        <div class="scorecard-offer">Корпоративный мессенджер + видеозвонки + задачи. Цифровой офис с интеграцией в VK-экосистему.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">Интеграция VK</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:88%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Экосистема</div>
+            <div class="bar-track"><div class="bar-fill bar-mid" style="width:65%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Compliance</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:28%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Интеграция в VK-экосистему, цифровой офис</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Слабый акцент на compliance и регуляторику</div>
+        </div>
+      </div>
+
+      <!-- SaluteJazz -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">SaluteJazz</div>
+          <div class="type-badge type-direct">Прямой</div>
+        </div>
+        <div class="scorecard-offer">Российское решение для видеоконференций и вебинаров. До нескольких тысяч участников. SDK/API, запись, шумоподавление, AI-функции. Бизнес и образование.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">Масштаб встреч</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:85%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Бренд Сбера</div>
+            <div class="bar-track"><div class="bar-fill bar-mid" style="width:80%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Дифференциация</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:30%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Имя Сбера, enterprise-сегмент, SDK/API</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Восприятие как «ещё одна ВКС» — нет яркой отстройки</div>
+        </div>
+      </div>
+
+      <!-- EXpress -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">EXpress</div>
+          <div class="type-badge type-direct">Прямой (коммуникации)</div>
+        </div>
+        <div class="scorecard-offer">Мессенджер + видео/голос + чаты + каналы. Конференции до ~256 участников. SmartApps, федерация серверов. Интеграция с SIEM/DLP. Замена Telegram/WhatsApp.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">ИБ / Compliance</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:95%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Госструктуры</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:88%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">ВКС-масштаб</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:25%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Фокус на ИБ, госструктуры, замена мессенджеров</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Нет полноценной ВКС-экосистемы, лимит 256 участников</div>
+        </div>
+      </div>
+
+      <!-- IVA -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">IVA</div>
+          <div class="type-badge type-direct">Прямой</div>
+        </div>
+        <div class="scorecard-offer">ВКС + совместная работа + запись + стенографирование + синхронный перевод. Поддержка крупных конференций. Совместимость с ВКС-терминалами. On-premise.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">Госсегмент</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:90%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Импортозам.</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:92%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Бизнес-удобство</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:30%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Госсегмент, регуляторика, импортозамещение</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Коммуникация «для госов», слабый фокус на бизнес-удобство</div>
+        </div>
+      </div>
+
+      <!-- DION -->
+      <div class="scorecard">
+        <div class="scorecard-top">
+          <div class="company-name">DION</div>
+          <div class="type-badge type-direct">Прямой</div>
+        </div>
+        <div class="scorecard-offer">Облачная корпоративная ВКС до ~1000 участников. Видео/аудио высокого качества, демонстрация экрана, чат, администрирование. Акцент на безопасности данных.</div>
+        <div class="scorecard-bars">
+          <div class="bar-row">
+            <div class="bar-label">Безопасность</div>
+            <div class="bar-track"><div class="bar-fill bar-strong" style="width:85%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Технологичность</div>
+            <div class="bar-track"><div class="bar-fill bar-mid" style="width:72%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Дифференциация</div>
+            <div class="bar-track"><div class="bar-fill bar-low" style="width:22%"></div></div>
+          </div>
+        </div>
+        <div class="sw-grid">
+          <div class="sw-box sw-strong"><div class="sw-label">Сильно</div>Фокус на защищённости, поддержка разных протоколов</div>
+          <div class="sw-box sw-weak"><div class="sw-label">Слабо</div>Мало эмоционального и продуктового дифференцирования</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="section">
+    <div class="section-title">Сводная таблица</div>
+    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:12px;">
+      <table class="detail-table">
+        <thead>
+          <tr>
+            <th>Продукт</th>
+            <th>Тип</th>
+            <th>Основной оффер</th>
+            <th>Целевой сегмент</th>
+            <th>Сильная упаковка</th>
+            <th>Слабые места</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-company">МТС Линк</td>
+            <td><span class="chip chip-blue">Прямой</span></td>
+            <td class="td-muted">Встречи, вебинары, курсы, чаты, ИИ-инструменты</td>
+            <td><span class="chip chip-yellow">B2B</span><span class="chip chip-yellow">B2G</span><span class="chip chip-yellow">Enterprise</span></td>
+            <td class="td-muted">Масштаб, бренд МТС, техподдержка</td>
+            <td style="color:var(--accent2)">Мало про экосистему командной работы</td>
+          </tr>
+          <tr>
+            <td class="td-company">TrueConf</td>
+            <td><span class="chip chip-blue">Прямой</span></td>
+            <td class="td-muted">Secure ВКС + мессенджер, UltraHD, on-premise</td>
+            <td><span class="chip chip-yellow">Крупный бизнес</span><span class="chip chip-yellow">Госструктуры</span></td>
+            <td class="td-muted">ИТ-глубина, безопасность</td>
+            <td style="color:var(--accent2)">Перегружено техподробностями</td>
+          </tr>
+          <tr>
+            <td class="td-company">Яндекс 360</td>
+            <td><span class="chip chip-orange">Косвенный</span></td>
+            <td class="td-muted">Виртуальный офис: почта + задачи + Телемост</td>
+            <td><span class="chip chip-yellow">SMB</span><span class="chip chip-yellow">Массовый рынок</span></td>
+            <td class="td-muted">Простота, бренд Яндекса</td>
+            <td style="color:var(--accent2)">Не enterprise по безопасности</td>
+          </tr>
+          <tr>
+            <td class="td-company">VK Teams</td>
+            <td><span class="chip chip-blue">Прямой</span></td>
+            <td class="td-muted">Мессенджер + видео + задачи, цифровой офис</td>
+            <td><span class="chip chip-yellow">B2B</span><span class="chip chip-yellow">VK-экосистема</span></td>
+            <td class="td-muted">Интеграция VK-экосистемы</td>
+            <td style="color:var(--accent2)">Слабый акцент на compliance</td>
+          </tr>
+          <tr>
+            <td class="td-company">SaluteJazz</td>
+            <td><span class="chip chip-blue">Прямой</span></td>
+            <td class="td-muted">ВКС до тысяч участников, вебинары, SDK/API</td>
+            <td><span class="chip chip-yellow">Enterprise</span><span class="chip chip-yellow">Образование</span></td>
+            <td class="td-muted">Бренд Сбера, enterprise-сегмент</td>
+            <td style="color:var(--accent2)">Восприятие как «ещё одна ВКС»</td>
+          </tr>
+          <tr>
+            <td class="td-company">EXpress</td>
+            <td><span class="chip chip-blue">Прямой</span></td>
+            <td class="td-muted">Мессенджер + видео до 256 уч., SIEM/DLP-интеграция</td>
+            <td><span class="chip chip-yellow">ИБ</span><span class="chip chip-yellow">Госструктуры</span></td>
+            <td class="td-muted">Фокус на ИБ, замена Telegram/WhatsApp</td>
+            <td style="color:var(--accent2)">Нет полноценной ВКС-экосистемы (лимит 256)</td>
+          </tr>
+          <tr>
+            <td class="td-company">IVA</td>
+            <td><span class="chip chip-blue">Прямой</span></td>
+            <td class="td-muted">ВКС + перевод + стенографирование, ВКС-терминалы</td>
+            <td><span class="chip chip-yellow">Госсегмент</span><span class="chip chip-yellow">Импортозамещение</span></td>
+            <td class="td-muted">Госсегмент, регуляторика</td>
+            <td style="color:var(--accent2)">Слабый фокус на бизнес-удобстве</td>
+          </tr>
+          <tr>
+            <td class="td-company">DION</td>
+            <td><span class="chip chip-blue">Прямой</span></td>
+            <td class="td-muted">Облачная ВКС до 1000 уч., аудио/видео, чат, адм.</td>
+            <td><span class="chip chip-yellow">Корпорации</span><span class="chip chip-yellow">МСБ</span><span class="chip chip-yellow">НКО</span></td>
+            <td class="td-muted">Фокус на защищённости</td>
+            <td style="color:var(--accent2)">Мало продуктового дифференцирования</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- POSITIONING MAP -->
+  <div class="section">
+    <div class="section-title">Карта позиционирования</div>
+    <p style="color:var(--muted); font-size:0.83rem; margin-bottom:1.5rem;">Ось X — широта функциональности (от специализированного к экосистемному). Ось Y — целевой сегмент (от массового рынка к enterprise/gov).</p>
+    <div class="map-wrap">
+      <div class="map-axis-h"></div>
+      <div class="map-axis-v"></div>
+
+      <!-- Axis labels -->
+      <div class="map-label-axis" style="left:2%;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left center;">Массовый рынок</div>
+      <div class="map-label-axis" style="right:1.5%;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:right center;">Enterprise / Gov</div>
+      <div class="map-label-axis" style="top:2%;left:50%;transform:translateX(-50%)">Специализированный</div>
+      <div class="map-label-axis" style="bottom:2%;left:50%;transform:translateX(-50%)">Экосистемный</div>
+
+      <!-- Nodes -->
+      <!-- TrueConf: specialist, enterprise -->
+      <div class="map-node" style="left:25%;top:18%">
+        <div class="map-node-dot" style="background:var(--accent);box-shadow:0 0 0 6px #5b8af520;"></div>
+        <div class="map-node-name" style="color:var(--accent)">TrueConf</div>
+      </div>
+
+      <!-- IVA: specialist, gov -->
+      <div class="map-node" style="left:30%;top:28%">
+        <div class="map-node-dot" style="background:var(--accent);box-shadow:0 0 0 6px #5b8af520;"></div>
+        <div class="map-node-name" style="color:var(--accent)">IVA</div>
+      </div>
+
+      <!-- EXpress: specialist, gov -->
+      <div class="map-node" style="left:22%;top:35%">
+        <div class="map-node-dot" style="background:var(--accent);box-shadow:0 0 0 6px #5b8af520;"></div>
+        <div class="map-node-name" style="color:var(--accent)">EXpress</div>
+      </div>
+
+      <!-- МТС Линк: wide, enterprise -->
+      <div class="map-node" style="left:65%;top:20%">
+        <div class="map-node-dot" style="background:#a78bfa;box-shadow:0 0 0 6px #a78bfa20;"></div>
+        <div class="map-node-name" style="color:#a78bfa">МТС Линк</div>
+      </div>
+
+      <!-- SaluteJazz: mid, enterprise -->
+      <div class="map-node" style="left:50%;top:25%">
+        <div class="map-node-dot" style="background:var(--accent);box-shadow:0 0 0 6px #5b8af520;"></div>
+        <div class="map-node-name" style="color:var(--accent)">SaluteJazz</div>
+      </div>
+
+      <!-- DION: mid, enterprise -->
+      <div class="map-node" style="left:40%;top:33%">
+        <div class="map-node-dot" style="background:var(--accent);box-shadow:0 0 0 6px #5b8af520;"></div>
+        <div class="map-node-name" style="color:var(--accent)">DION</div>
+      </div>
+
+      <!-- VK Teams: mid-wide, mass-enterprise -->
+      <div class="map-node" style="left:60%;top:55%">
+        <div class="map-node-dot" style="background:var(--accent2);box-shadow:0 0 0 6px #f5855b20;"></div>
+        <div class="map-node-name" style="color:var(--accent2)">VK Teams</div>
+      </div>
+
+      <!-- Яндекс 360: wide, mass -->
+      <div class="map-node" style="left:75%;top:72%">
+        <div class="map-node-dot" style="background:var(--accent3);box-shadow:0 0 0 6px #5bf5b020;"></div>
+        <div class="map-node-name" style="color:var(--accent3)">Яндекс 360</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="section">
+    <div class="section-title">Ключевые инсайты</div>
+    <div class="insights-grid">
+      <div class="insight-card">
+        <div class="insight-icon">🔐</div>
+        <div class="insight-title">Безопасность — гигиенический фактор</div>
+        <div class="insight-text">Практически все игроки декларируют безопасность. Это уже не дифференциатор — это минимальный порог входа. Выигрывает тот, кто к безопасности добавляет UX.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🏛</div>
+        <div class="insight-title">Госсегмент перегружен предложениями</div>
+        <div class="insight-text">IVA, TrueConf, EXpress и отчасти МТС Линк — все идут в госструктуры. Конкуренция высокая, дифференциация минимальная. Сегмент сложный регуляторно.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">💡</div>
+        <div class="insight-title">Слабое место всех — продуктовая история</div>
+        <div class="insight-text">Почти у каждого конкурента слабое место — отсутствие эмоционального или нарративного дифференцирования. «Ещё одна ВКС» — типичное восприятие. Сторителлинг не проработан.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🧩</div>
+        <div class="insight-title">Экосистемный подход — незакрытая ниша</div>
+        <div class="insight-text">Яндекс 360 и VK Teams делают шаги к «цифровому офису», но не позиционируются как enterprise. МТС Линк — наоборот. Ниши «экосистема + enterprise» реально нет.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🤖</div>
+        <div class="insight-title">ИИ-функции — ещё не стандарт</div>
+        <div class="insight-text">МТС Линк, TrueConf, SaluteJazz декларируют AI. Но глубина интеграции ИИ в реальный workflow у большинства поверхностна. Здесь есть пространство для лидерства.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">📏</div>
+        <div class="insight-title">Масштаб участников: критическое различие</div>
+        <div class="insight-text">EXpress — 256 участников vs. МТС Линк / SaluteJazz — тысячи. Для крупных корпоративных мероприятий это принципиально. Важно отражать в позиционировании.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Конкурентный анализ · Платформы корпоративных коммуникаций · 2025</span>
+    <span style="color:var(--border)">На основе предоставленных данных</span>
+  </footer>
+
+</div>
+
+<script>
+  // Animate bars on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const fills = document.querySelectorAll('.bar-fill');
+    fills.forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0%';
+      setTimeout(() => { el.style.width = w; }, 200);
+    });
+  });
+</script>
+
+</body>
+</html>
